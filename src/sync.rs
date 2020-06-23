@@ -162,7 +162,7 @@ impl<T: Send + Clone + 'static> Iterator for Receiver<T> {
         self.current = current;
         let value = unsafe { &*current }.value.clone();
         unsafe {
-            if (&*old).readers.fetch_sub(1, Ordering::SeqCst) == 0 {
+            if (&*old).readers.fetch_sub(1, Ordering::SeqCst) == 1 {
                 ptr::drop_in_place(old);
                 self.channel
                     .tail

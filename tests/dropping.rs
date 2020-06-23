@@ -1,6 +1,5 @@
 use broadcast_channel::*;
 
-use std::mem;
 use std::sync::atomic::{AtomicU32, Ordering};
 
 #[derive(Clone)]
@@ -24,7 +23,6 @@ fn dropping() {
 }
 
 #[test]
-#[ignore]
 fn dropping_after_recv() {
     static DROPS: AtomicU32 = AtomicU32::new(0);
     let (tx, mut rx) = broadcaster();
@@ -32,11 +30,10 @@ fn dropping_after_recv() {
         tx.send(SideEffectDrop(1, &DROPS));
     }
 
-    for _ in 0..3 {
-        mem::forget(rx.next().unwrap());
-    }
+    rx.nth(2);
 
     drop(rx);
     drop(tx);
-    assert_eq!(DROPS.load(Ordering::SeqCst), 7);
+    // We drop the 10 put in the channel + 3 that are read from the receiver
+    assert_eq!(DROPS.load(Ordering::SeqCst), 13);
 }
