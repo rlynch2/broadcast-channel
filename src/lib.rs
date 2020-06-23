@@ -16,18 +16,15 @@
 //! ```rust
 //! use broadcast_channel::broadcaster;
 //!
-//! # fn main() {
 //! let (tx, mut rx) = broadcaster();
 //! tx.send(1);
 //! assert_eq!(rx.next(), Some(1));   
-//! # }
 //! ```
 //! Threaded use:
 //!```rust
 //! use broadcast_channel::broadcaster;
 //! use std::thread;
 //!
-//! # fn main() {
 //! let (tx, mut rx) = broadcaster();
 //! let thread = thread::spawn(move || {
 //!     tx.send_all(0..10);
@@ -36,7 +33,6 @@
 //! for (i, item) in rx.enumerate() {
 //!     assert_eq!(i, item);
 //! }
-//! # }
 
 mod sync;
 pub use sync::*;

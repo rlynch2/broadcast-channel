@@ -78,10 +78,10 @@ impl<T: Send + Clone + 'static> BroadcastChannel<T> {
 
 impl<T: Send + Clone> Drop for BroadcastChannel<T> {
     fn drop(&mut self) {
-        while *self.tail.get_mut() != ptr::null_mut() {
+        while (*self.tail.get_mut()).is_null() {
             let tail = *self.tail.get_mut();
             unsafe {
-                *self.tail.get_mut() = *(&mut *tail).next.get_mut();
+                *self.tail.get_mut() = *(*tail).next.get_mut();
 
                 ptr::drop_in_place(tail);
             }
@@ -136,7 +136,7 @@ impl<T: Send + Clone + 'static> Clone for Receiver<T> {
         let head = loop {
             let old_head = self.channel.head.load(Ordering::SeqCst);
             self.channel.readers.fetch_add(1, Ordering::SeqCst);
-            if !(old_head == self.channel.head.load(Ordering::SeqCst)) {
+            if old_head != self.channel.head.load(Ordering::SeqCst) {
                 self.channel.readers.fetch_sub(1, Ordering::SeqCst);
             } else {
                 break old_head;
@@ -162,7 +162,7 @@ impl<T: Send + Clone + 'static> Iterator for Receiver<T> {
         self.current = current;
         let value = unsafe { &*current }.value.clone();
         unsafe {
-            if (&*old).readers.fetch_sub(1, Ordering::SeqCst) == 1 {
+            if (*old).readers.fetch_sub(1, Ordering::SeqCst) == 1 {
                 ptr::drop_in_place(old);
                 self.channel
                     .tail
