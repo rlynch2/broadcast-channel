@@ -78,7 +78,7 @@ impl<T: Send + Clone + 'static> BroadcastChannel<T> {
 
 impl<T: Send + Clone> Drop for BroadcastChannel<T> {
     fn drop(&mut self) {
-        while (*self.tail.get_mut()).is_null() {
+        while !(*self.tail.get_mut()).is_null() {
             let tail = *self.tail.get_mut();
             unsafe {
                 *self.tail.get_mut() = *(*tail).next.get_mut();
